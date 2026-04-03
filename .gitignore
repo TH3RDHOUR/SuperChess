@@ -1,0 +1,21 @@
+# Build directory
+build/
+
+#VSCode files
+.vscode/
+
+# MacOS related files
+.DS_Store
+
+# Executables
+*.exe
+*.dll
+*.so
+*.dylib
+compile_commands.json
+
+#Random file that is made with code runner.
+src/main
+
+# Dear ImGui artifacts if I end up using ImGui in project
+#imgui.ini
