@@ -16,6 +16,3 @@ compile_commands.json
 
 #Random file that is made with code runner.
 src/main
-
-# Dear ImGui artifacts if I end up using ImGui in project
-#imgui.ini
