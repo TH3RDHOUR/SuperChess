@@ -1,4 +1,5 @@
 #include <iostream>
+#include "board/position.h"
 
 int main()
 {
