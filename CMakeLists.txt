@@ -8,6 +8,7 @@ file(GLOB_RECURSE BOARD_SRC src/board/*.cpp)
 file(GLOB_RECURSE MOVE_SRC src/move/*.cpp)
 file(GLOB_RECURSE SEARCH_SRC src/search/*.cpp)
 file(GLOB_RECURSE EVAL_SRC src/eval/*.cpp)
+file(GLOB_RECURSE UTILS_SRC src/utils/*.cpp)
 file(GLOB_RECURSE MAIN_SRC src/main.cpp)
 
 add_executable(chess_engine
@@ -16,6 +17,7 @@ add_executable(chess_engine
     ${MOVE_SRC}
     ${SEARCH_SRC}
     ${EVAL_SRC}
+    ${UTILS_SRC}
 )
 
 target_include_directories(chess_engine PRIVATE include)

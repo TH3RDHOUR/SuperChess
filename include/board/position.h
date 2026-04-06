@@ -26,17 +26,23 @@ enum Color
     BOTH  = 2
 };
 
-struct Position
+namespace Board
 {
-    uint64_t bitboards[12]; // All piece types [piece]
-    uint64_t occupancies[3]; // [white, black, both]
+    struct Position
+    {
+        uint64_t bitboards[12]; // All piece types [piece]
+        uint64_t occupancies[3]; // [white, black, both]
 
-    int side_to_move;
-    int castling_rights;
-    int en_passant_square;
+        int side_to_move;
+        int castling_rights;
+        int en_passant_square;
 
-    int halfmove_clock;
-    int fullmove_number;
-};
+        int halfmove_clock;
+        int fullmove_number;
+    };
+
+    void clear_position(Position& pos);
+    void update_occupancies(Position& pos);
+}
 
 #endif
