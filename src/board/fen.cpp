@@ -31,6 +31,7 @@ bool Board::parse_fen(Position& pos, const std::string& fen)
             if (file != 8)
                 return false;
 
+            // Move down a rank, increment the number of ranks, & reset file.
             rank--;
             file = 0;
         }
@@ -73,6 +74,7 @@ bool Board::parse_fen(Position& pos, const std::string& fen)
                 case 'k': piece = BlackKing; break;
             }
 
+            // Could not find character.
             if (piece == -1)
                 return false;
 
@@ -85,6 +87,7 @@ bool Board::parse_fen(Position& pos, const std::string& fen)
     }
 
     // Final Validation of files & ranks.
+    // Final board must be an 8x8.
     if (file != 8 || rank != 0)
         return false;
 
