@@ -72,5 +72,5 @@ void Board::print_board(const Position& pos)
     }
 
     // Print File labels.
-    std::cout << "   a b c d e f g h";
+    std::cout << "   a b c d e f g h\n";
 }

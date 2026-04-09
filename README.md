@@ -33,5 +33,5 @@ cmake --build build
 ## To run in MacOS or Linux:
 
 ```
-./build/chess_engine.exe
+./build/chess_engine
 ```

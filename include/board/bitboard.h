@@ -2,7 +2,10 @@
 #define BITBOARD_H
 
 #include <cstdint> // uint64_t.
-#include <intrin.h> // _BitScanForward64.
+// Only include on Windows.
+#ifdef _WIN32
+    #include <intrin.h> // _BitScanForward64.
+#endif
 
 namespace BitBoard
 {
