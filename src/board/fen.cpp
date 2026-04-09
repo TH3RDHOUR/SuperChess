@@ -4,13 +4,15 @@
 bool Board::parse_fen(Position& pos, const std::string& fen)
 {
     Board::clear_position(pos);
+    pos.castling_rights = 0;
 
     // Initialize rank (rows) & file (columns).
     int rank = 7; // rank 8 -> 1.
     int file = 0; // file a -> h.
+    int i = 0; // Iterator.
 
     // Loop over the fen string.
-    for (int i = 0; i < fen.size(); i++)
+    for (; i < fen.size(); i++)
     {
         // Out of Bounds.
         if (file > 8 || rank < 0)
@@ -90,6 +92,80 @@ bool Board::parse_fen(Position& pos, const std::string& fen)
     // Final board must be an 8x8.
     if (file != 8 || rank != 0)
         return false;
+
+    // Parse the remainder of the FEN string.
+    // Verify we are not at the end of the FEN string & we are on a space.
+    if (i >= fen.size() || fen[i] != ' ')
+        return false;
+
+    // Skip the space.
+    i++;
+
+    // Bounds checker.
+    if (i >= fen.size())
+        return false;
+
+    // Check for side_to_move value.
+    if (fen[i] == 'w')
+    {
+        pos.side_to_move = WHITE;
+        i++;
+    }
+    else if (fen[i] == 'b')
+    {
+        pos.side_to_move = BLACK;
+        i++;
+    }
+    else
+        return false;
+
+    // Verify we are not at the end of the FEN string & we are on a space.
+    if (i >= fen.size() || fen[i] != ' ')
+        return false;
+
+    // Skip the space
+    i++;
+
+    // Bounds checker.
+    if (i >= fen.size())
+        return false;
+
+    // Castling rights loop.
+    while (i < fen.size() && fen[i] != ' ')
+    {
+        // If char is a dash.
+        if (fen[i] == '-')
+        {
+            pos.castling_rights = 0;
+            i++;
+
+            // Make sure next char is space for valid FEN.
+            if (i >= fen.size() || fen[i] != ' ')
+                return false;
+
+            break;
+        }
+        // If char is a letter.
+        if (fen[i] == 'K')
+            pos.castling_rights |= 1 << 0;
+        else if (fen[i] == 'Q')
+            pos.castling_rights |= 1 << 1;
+        else if (fen[i] == 'k')
+            pos.castling_rights |= 1 << 2;
+        else if (fen[i] == 'q')
+            pos.castling_rights |= 1 << 3;
+        else
+            return false;
+
+        i++;
+    }
+
+    // Verify we are not at the end of the FEN string & we are on a space.
+    if (i >= fen.size() || fen[i] != ' ')
+        return false;
+
+    // Skip the space
+    i++;
 
     Board::update_occupancies(pos);
 
