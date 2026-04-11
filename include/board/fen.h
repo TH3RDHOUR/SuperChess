@@ -5,6 +5,8 @@
 #include "position.h"
 #include <string>
 #include <cctype>
+#include <vector>
+#include <sstream>
 
 namespace Board
 {

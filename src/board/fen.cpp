@@ -1,33 +1,20 @@
 #include "board/fen.h"
 
-// TODO: Change fen parser to split the fen string first by spaces then parse it.
-
-// Check we are on a space and not at the end of the FEN string.
-static bool check_space_and_advance(int& iterator, const std::string& fen)
-{
-    // Verify we are not at the end of the FEN string & we are on a space.
-    if (iterator >= fen.size() || fen[iterator] != ' ')
-        return false;
-
-    // Skip the space
-    iterator++;
-
-    return true;
-}
-
 // Parse the half move section.
-static bool parse_halfmove(Board::Position& pos, int& iterator, const std::string& fen)
+static bool parse_halfmove(Board::Position& pos, const std::string& half)
 {
-    // Bounds checker.
-    if (iterator >= fen.size() || !std::isdigit(fen[iterator]))
+    // Verify length.
+    if (half.length() < 1)
         return false;
 
     // Loop through all halfmove ints in string.
     int value = 0;
-    while (iterator < fen.size() && std::isdigit(fen[iterator]))
+    for (int i = 0; i < half.size(); i++)
     {
-        value = value * 10 + (fen[iterator] - '0');
-        iterator++;
+        if (std::isdigit(half[i]))
+            value = value * 10 + (half[i] - '0');
+        else
+            return false;
     }
 
     pos.halfmove_clock = value;
@@ -35,18 +22,20 @@ static bool parse_halfmove(Board::Position& pos, int& iterator, const std::strin
 }
 
 // Parse the full move section.
-static bool parse_fullmove(Board::Position& pos, int& iterator, const std::string& fen)
+static bool parse_fullmove(Board::Position& pos, const std::string& full)
 {
-    // Bounds checker.
-    if (iterator >= fen.size() || !std::isdigit(fen[iterator]))
+    // Verify length.
+    if (full.length() < 1)
         return false;
 
     // Loop through all fullmove ints in string.
     int value = 0;
-    while (iterator < fen.size() && std::isdigit(fen[iterator]))
+    for (int i = 0; i < full.size(); i++)
     {
-        value = value * 10 + (fen[iterator] - '0');
-        iterator++;
+        if (std::isdigit(full[i]))
+            value = value * 10 + (full[i] - '0');
+        else
+            return false;
     }
 
     // Value is correct for full move.
@@ -60,38 +49,30 @@ static bool parse_fullmove(Board::Position& pos, int& iterator, const std::strin
 }
 
 // Parse the en Passant section.
-static bool parse_en_passant(Board::Position& pos, int& iterator, const std::string& fen)
+static bool parse_en_passant(Board::Position& pos, const std::string& enp)
 {
-    // Bounds checker.
-    if (iterator >= fen.size())
+    // Verify length.
+    if (enp.size() < 1 || enp.size() > 2)
         return false;
 
     // No en Passant
-    if (fen[iterator] == '-')
+    if (enp[0] == '-' && enp.size() == 1)
     {
         pos.en_passant_square = -1;
-        iterator++;
     }
 
     // En Passant Square Determination.
-    else if (fen[iterator] >= 'a' && fen[iterator] <= 'h')
+    else if (enp.size() == 2 && enp[0] >= 'a' && enp[0] <= 'h')
     {
-        // Bounds checker.
-        if (iterator + 1 >= fen.size())
-            return false;
-
         // Must be either rank 3 (black pawn) & 6 (white pawn).
-        if (fen[iterator + 1] == '3' || fen[iterator + 1] == '6')
+        if (enp[1] == '3' || enp[1] == '6')
         {
             // Get file & rank of en Passant square.
-            int file_pas = fen[iterator] - 'a';
-            int rank_pas = fen[iterator + 1] - '1';
+            int file_pas = enp[0] - 'a';
+            int rank_pas = enp[1] - '1';
 
             // Calculate and assign en Passant square.
             pos.en_passant_square = rank_pas * 8 + file_pas;
-
-            // Skip over en Passant square characters.
-            iterator += 2;
         }
         // Invalid rank for en Passant square.
         else
@@ -108,22 +89,20 @@ static bool parse_en_passant(Board::Position& pos, int& iterator, const std::str
     return true;
 }
 
-static bool parse_side_to_move(Board::Position& pos, int& iterator, const std::string& fen)
+static bool parse_side_to_move(Board::Position& pos, const std::string& stm)
 {
-    // Bounds checker.
-    if (iterator >= fen.size())
+    // Verify length.
+    if (stm.size() != 1)
         return false;
 
     // Check for side_to_move value.
-    if (fen[iterator] == 'w')
+    if (stm[0] == 'w')
     {
         pos.side_to_move = WHITE;
-        iterator++;
     }
-    else if (fen[iterator] == 'b')
+    else if (stm[0] == 'b')
     {
         pos.side_to_move = BLACK;
-        iterator++;
     }
     else
         return false;
@@ -131,79 +110,69 @@ static bool parse_side_to_move(Board::Position& pos, int& iterator, const std::s
     return true;
 }
 
-static bool parse_castling_rights(Board::Position& pos, int& iterator, const std::string& fen)
+static bool parse_castling_rights(Board::Position& pos, const std::string& cast)
 {
-    // Bounds checker.
-    if (iterator >= fen.size())
+    // Initialize castling rights.
+    pos.castling_rights = 0;
+
+    // Verify length.
+    if (cast.length() < 1)
         return false;
 
-    // Castling rights loop.
-    while (iterator < fen.size() && fen[iterator] != ' ')
+    // If char is a dash.
+    if (cast[0] == '-')
     {
-        // Bounds checker for next character.
-        if (fen[iterator + 1] >= fen.size())
-            return false;
-
-        // If char is a dash.
-        if (fen[iterator] == '-')
-        {
+        // MUST be length of 1 if a dash.
+        if (cast.length() == 1)
             pos.castling_rights = 0;
-            iterator++;
-
-            break;
-        }
-
-        // If char is a letter.
-        if (fen[iterator] == 'K')
-        {
-            pos.castling_rights |= 1 << 0;
-        }
-        else if (fen[iterator] == 'Q')
-        {
-            pos.castling_rights |= 1 << 1;
-        }
-        else if (fen[iterator] == 'k')
-        {
-            pos.castling_rights |= 1 << 2;
-        }
-        else if (fen[iterator] == 'q')
-        {
-            pos.castling_rights |= 1 << 3;
-        }
         else
             return false;
+    }
 
-        iterator++;
+    else
+    {
+        // Loop over castling rights section.
+        for (int i = 0; i < cast.size(); i++)
+        {
+            // If char is a letter.
+            if (cast[i] == 'K')
+            {
+                pos.castling_rights |= 1 << 0;
+            }
+            else if (cast[i] == 'Q')
+            {
+                pos.castling_rights |= 1 << 1;
+            }
+            else if (cast[i] == 'k')
+            {
+                pos.castling_rights |= 1 << 2;
+            }
+            else if (cast[i] == 'q')
+            {
+                pos.castling_rights |= 1 << 3;
+            }
+            else
+                return false;
+        }
     }
 
     return true;
 }
 
-// Main function that parses the entire FEN string.
-bool Board::parse_fen(Position& pos, const std::string& fen)
+static bool parse_board(Board::Position& pos, const std::string& board)
 {
-    Board::clear_position(pos);
-    pos.castling_rights = 0;
-
     // Initialize rank (rows) & file (columns).
     int rank = 7; // rank 8 -> 1.
     int file = 0; // file a -> h.
-    int i = 0; // Iterator.
 
     // Loop over the fen string board section.
-    for (; i < fen.size(); i++)
+    for (int i = 0; i < board.size(); i++)
     {
         // Out of Bounds.
         if (file > 8 || rank < 0)
             return false;
 
-        char c = fen[i];
-
-        // End of placement.
-        if (c == ' ')
-        {
-            break;
-        }
+        char c = board[i];
 
         // Move to next rank
         if (c == '/')
@@ -224,7 +193,7 @@ bool Board::parse_fen(Position& pos, const std::string& fen)
             int offset = (c - '0');
             
             // Digit is too large, incorrect FEN.
-            if (file + offset > 8)
+            if (offset < 1 || offset > 8)
                 return false;
 
             file += offset;
@@ -272,44 +241,62 @@ bool Board::parse_fen(Position& pos, const std::string& fen)
     if (file != 8 || rank != 0)
         return false;
 
-    // Parse the remainder of the FEN string.
-    // Verify we are not at the end of the FEN string & we are on a space.
-    if (!check_space_and_advance(i, fen))
+    return true;
+}
+
+// Split a FEN string by spaces and return a vector of strings.
+static std::vector<std::string> split(const std::string& fen)
+{
+    // Instantiate vector to hold the split fen.
+    std::vector<std::string> tokens;
+    std::istringstream iss(fen);
+    std::string token;
+
+    // Loop over fen separating by spaces.
+    while (iss >> token)
+    {
+        tokens.push_back(token);
+    }
+
+    return tokens;
+}
+
+// Main function that parses the entire FEN string.
+bool Board::parse_fen(Position& pos, const std::string& fen)
+{
+    Board::clear_position(pos);
+
+    // Split the FEN string.
+    auto tokens = split(fen);
+
+    // Make sure there is the correct number of sections.
+    if (tokens.size() != 6)
+    {
+        return false;
+    }
+
+    // Parse the board section of the FEN string.
+    if (!parse_board(pos, tokens[0]))
         return false;
 
     // Parse the side to move section.
-    if (!parse_side_to_move(pos, i, fen))
-        return false;
-    // Verify we are not at the end of the FEN string & we are on a space.
-    if (!check_space_and_advance(i, fen))
+    if (!parse_side_to_move(pos, tokens[1]))
         return false;
 
     // Parse the castling rights section.
-    if (!parse_castling_rights(pos, i, fen))
-        return false;
-    // Verify we are not at the end of the FEN string & we are on a space.
-    if (!check_space_and_advance(i, fen))
+    if (!parse_castling_rights(pos, tokens[2]))
         return false;
 
     // Parse the en Passant section.
-    if (!parse_en_passant(pos, i, fen))
-        return false;
-    // Verify we are not at the end of the FEN string & we are on a space.
-    if (!check_space_and_advance(i, fen))
+    if (!parse_en_passant(pos, tokens[3]))
         return false;
 
     // Parse the halfmove section.
-    if (!parse_halfmove(pos, i, fen))
-        return false;
-    // Verify we are not at the end of the FEN string & we are on a space.
-    if (!check_space_and_advance(i, fen))
+    if (!parse_halfmove(pos, tokens[4]))
         return false;
 
     // Parse the full move section.
-    if (!parse_fullmove(pos, i, fen))
-        return false;
-    // Make sure we have reached the end of the string.
-    if (i != fen.size())
+    if (!parse_fullmove(pos, tokens[5]))
         return false;
 
     Board::update_occupancies(pos);
