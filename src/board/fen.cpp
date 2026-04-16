@@ -363,19 +363,51 @@ static std::string generate_board(const Board::Position& pos)
 // Generate the Side To Move portion of the FEN string.
 static std::string generate_stm(const Board::Position& pos)
 {
-    return " ";
+    if (pos.side_to_move == WHITE)
+    {
+        return "w";
+    }
+
+    return "b";
 }
 
 // Generate the castling rights portion of the FEN string.
 static std::string generate_castling(const Board::Position& pos)
 {
-    return " ";
+    std::string castle = "";
+    // Go through all castle rights bits.
+    if (pos.castling_rights & (1 << 0))
+        castle += 'K';
+    if (pos.castling_rights & (1 << 1))
+        castle += 'Q';
+    if (pos.castling_rights & (1 << 2))
+        castle += 'k';
+    if (pos.castling_rights & (1 << 3))
+        castle += 'q';
+
+    // If castle is still an empty string.
+    if (castle.empty())
+        return "-";
+    
+    return castle;
 }
 
 // Generate the en Passant portion of the FEN string.
 static std::string generate_en_passant(const Board::Position& pos)
 {
-    return " ";
+    // If not en Passant square.
+    if (pos.en_passant_square == -1)
+        return "-";
+
+    // Set return string & rank and file values;
+    std::string enp = "";
+    int file = pos.en_passant_square % 8;
+    int rank = pos.en_passant_square / 8;
+
+    // Get file & rank converted to be appended to return string.
+    enp += static_cast<char>('a' + file);
+    enp += static_cast<char>('1' + rank);
+    return enp;
 }
 
 std::string Board::generate_fen(const Position& pos)
