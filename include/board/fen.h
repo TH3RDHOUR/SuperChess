@@ -10,7 +10,8 @@
 
 namespace Board
 {
-    bool parse_fen(Board::Position& pos, const std::string& fen);   
+    bool parse_fen(Board::Position& pos, const std::string& fen);
+    std::string generate_fen(const Position& pos);
 }
 
 #endif

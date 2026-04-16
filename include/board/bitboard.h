@@ -7,6 +7,8 @@
     #include <intrin.h> // _BitScanForward64.
 #endif
 
+#include "board/position.h"
+
 namespace BitBoard
 {
     // Returns Unsigned Long Long shifted left by square bits.
@@ -26,6 +28,9 @@ namespace BitBoard
 
     int bit_scan_forward(uint64_t bb);
     int pop_lsb(uint64_t& bb);
+
+    // Returns the char at a position in the board using the mailbox.
+    char get_piece_char(const Board::Position& pos, int square);
 }
 
 #endif

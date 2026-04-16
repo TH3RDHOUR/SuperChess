@@ -231,6 +231,9 @@ static bool parse_board(Board::Position& pos, const std::string& board)
             // Set the piece at position square.
             BitBoard::set_bit(pos.bitboards[piece], square);
 
+            // Set the char piece in the mailbox.
+            pos.mailbox[square] = piece;
+
             // Move to the next file.
             file++;
         }
@@ -302,4 +305,85 @@ bool Board::parse_fen(Position& pos, const std::string& fen)
     Board::update_occupancies(pos);
 
     return true;
+}
+
+
+
+// Generate FEN Logic:
+
+// Generate the board portion of the FEN string.
+static std::string generate_board(const Board::Position& pos)
+{
+    std::string board;
+
+    for (int rank = 7; rank >= 0; rank--)
+    {
+        // Keep track of number of empty
+        int empty_count = 0;
+
+        for (int file = 0; file < 8; file++)
+        {
+            int square = rank * 8 + file;
+
+            // Get piece on board.
+            int piece = pos.mailbox[square];
+
+            // If there is no piece at that location.
+            if (piece == -1)
+            {
+                empty_count++;
+            }
+            else
+            {
+                // Append Empty count & restart count.
+                if (empty_count > 0)
+                {
+                    board.append(std::to_string(empty_count));
+                    empty_count = 0;
+                }
+
+                // Append the piece found.
+                char piece_char = pos.piece_chars[piece];
+                board += piece_char;
+            }
+        }
+
+        // Flush at the end of rank.
+        if (empty_count > 0)
+            board.append(std::to_string(empty_count));
+
+        // End of a file.
+        if (rank != 0)
+            board.append("/");
+    }
+
+    return board;
+}
+
+// Generate the Side To Move portion of the FEN string.
+static std::string generate_stm(const Board::Position& pos)
+{
+    return " ";
+}
+
+// Generate the castling rights portion of the FEN string.
+static std::string generate_castling(const Board::Position& pos)
+{
+    return " ";
+}
+
+// Generate the en Passant portion of the FEN string.
+static std::string generate_en_passant(const Board::Position& pos)
+{
+    return " ";
+}
+
+std::string Board::generate_fen(const Position& pos)
+{
+    return generate_board(pos) + " " +
+           generate_stm(pos) + " " +
+           generate_castling(pos) + " " +
+           generate_en_passant(pos) + " " +
+           std::to_string(pos.halfmove_clock) + " " +
+           std::to_string(pos.fullmove_number);
 }

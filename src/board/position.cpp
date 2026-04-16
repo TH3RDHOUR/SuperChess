@@ -10,6 +10,10 @@ void Board::clear_position(Position& pos)
     for (int i = 0; i < 3; i++)
         pos.occupancies[i] = 0ULL;
 
+    // Reset the mailbox.
+    for (int i = 0; i < 64; i++)
+        pos.mailbox[i] = -1; // Empty square;
+
     // Reset all other parameters.
     pos.side_to_move = WHITE;
     pos.castling_rights = 0;

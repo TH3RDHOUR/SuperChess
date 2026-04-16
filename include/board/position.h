@@ -33,12 +33,19 @@ namespace Board
         uint64_t bitboards[12]; // All piece types [piece]
         uint64_t occupancies[3]; // [white, black, both]
 
+        // Mailbox to hold piece positions for faster lookup.
+        int mailbox[64];
+
         int side_to_move;
         int castling_rights;
         int en_passant_square;
 
         int halfmove_clock;
         int fullmove_number;
+
+        // Array for all characters based on piece index.
+        const char piece_chars[12] = 
+        {'P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k'};
     };
 
     void clear_position(Position& pos);
